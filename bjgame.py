@@ -6,7 +6,7 @@ from typing import List, Tuple
 from models.card import Card, Rank
 from models.playerHand import PlayerHand
 
-VERBOSE = True
+VERBOSE = False
 
 class BlackJackGame:
     def __init__(self, player: Player, table_settings: BJTableSettings, stats: Stats):

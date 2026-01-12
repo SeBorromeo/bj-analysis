@@ -8,7 +8,9 @@ class BJEngine:
         self.game = BlackJackGame(player, table_settings, self.stats)
 
     def runNSimulations(self, N_SIMULATIONS):
-        for _ in range(N_SIMULATIONS):
+        for iter in range(N_SIMULATIONS):
+            if iter % 1000 == 0:
+                print(f"Running simulation {iter}/{N_SIMULATIONS}")
             self.game.play_hand()
     
     def printResults(self):

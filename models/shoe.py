@@ -25,12 +25,12 @@ class Shoe:
 
     def deal_card(self) -> Card: 
         if len(self.shoe) == 0:
-            print("Shoe is empty, creating a new shoe...")
+            # print("Shoe is empty, creating a new shoe...")
             self.shoe = self.create_shoe()
 
         card = self.shoe.pop(0)
         if card == 'shuffle_card':
-            print("Reshuffling the shoe...")
+            # print("Reshuffling the shoe...")
             self.shoe = self.create_shoe()
             card = self.shoe.pop(0)
         
