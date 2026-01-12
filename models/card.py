@@ -30,3 +30,19 @@ class Card:
     @property
     def value(self) -> int:
         return self.rank.value
+    
+    def __repr__(self) -> str:
+        suit_symbols = {
+            Suit.SPADES: "♠",
+            Suit.HEARTS: "♥",
+            Suit.DIAMONDS: "♦",
+            Suit.CLUBS: "♣"
+        }
+        rank_display = {
+            Rank.ACE: "A",
+            Rank.KING: "K",
+            Rank.QUEEN: "Q",
+            Rank.JACK: "J",
+            **{r: str(r.value) for r in Rank if r.value <= 10}
+        }
+        return f"{rank_display[self.rank]}{suit_symbols[self.suit]}"

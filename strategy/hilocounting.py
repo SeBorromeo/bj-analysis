@@ -1,4 +1,4 @@
-from models.card import Card, Rank
+from models.card import Card
 
 class HiLo:
     def get_tag(self, card: Card) -> int:

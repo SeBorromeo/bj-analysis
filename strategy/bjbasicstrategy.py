@@ -1,5 +1,5 @@
 from strategy.bjstrategy import BJStrategy
-from models.card import Card
+from models.card import Card, Rank
 
 split_table = [
     ['SP', 'SP', 'SP', 'SP', 'SP', 'SP', 'H', 'H', 'H', 'H'], # 2-2
@@ -43,18 +43,27 @@ class BJBasicStrategy(BJStrategy):
 
         # Handle hands with more than two cards (no splits or doubles possible)
         if len(player_cards) > 2:
+            if total < 9:
+                return 'H'
+            elif total >= 17:
+                return 'S'
+            
             return total_table[total - 9][dealer_upcard.value - 2]
 
         # Handle two-card hands
         player_card1, player_card2 = player_cards
-        if player_card1 == player_card2:
+        if player_card1.rank == player_card2.rank:
             return split_table[player_card1.value - 2][dealer_upcard.value - 2]
         
-        if player_card1 == 11 or player_card2 == 11:
-            non_ace_card = player_card1 if player_card2 == 11 else player_card2
+        if player_card1.rank == Rank.ACE or player_card2.rank == Rank.ACE:
+            non_ace_card = player_card1 if player_card2.rank == Rank.ACE else player_card2
             if non_ace_card.value >= 8:
                 return 'S'
 
             return ace_table[non_ace_card.value - 2][dealer_upcard.value - 2]
         
+        if total < 9:
+            return 'H'
+        if total >= 17:
+            return 'S'
         return total_table[total - 9][dealer_upcard.value - 2]

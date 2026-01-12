@@ -6,7 +6,9 @@ from strategy.countingstrategy import CountingStrategy
 from strategy.bjbasicstrategy import BJBasicStrategy
 
 class Player:
-    def __init__(self, name: str, bankroll: int, 
+    def __init__(self, 
+        name: str, 
+        bankroll: int, 
         bj_strategy: BJStrategy = BJBasicStrategy(), 
         bet_spread: BetSpread = BetSpread(), 
         counting_strategy: CountingStrategy = HiLo(),

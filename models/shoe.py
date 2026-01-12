@@ -1,5 +1,5 @@
+from models.card import Card, Rank, Suit
 import random
-from card import Card, Rank, Suit
 
 class Shoe:
     def __init__(self, num_decks=6):
@@ -35,3 +35,6 @@ class Shoe:
             card = self.shoe.pop(0)
         
         return card
+    
+    def remaining_cards(self) -> int:
+        return len(self.shoe)
