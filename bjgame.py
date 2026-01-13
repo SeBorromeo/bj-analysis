@@ -1,3 +1,4 @@
+import math
 from models.shoe import Shoe
 from bjtablesettings import BJTableSettings
 from models.player import Player
@@ -26,7 +27,9 @@ class BlackJackGame:
         if num_hands <= 0:
             raise ValueError("Number of hands must be at least 1.")
 
-        bet = 10 # TODO: Use bet spread and count to determine bet size
+        TC = self.get_current_true_count()
+        bet_mult = self.player.bet_spread.get_bet(TC)
+        bet = 10 * bet_mult # TODO: Use bet spread and count to determine bet size
 
         # Deal initial cards
         players_hands_cards, dealer_hand = self.initial_deal(num_hands)
@@ -51,7 +54,7 @@ class BlackJackGame:
                     if self.verbose:
                         print(f"Dealing second card: {new_card}")
 
-                TC = self.current_count / (self.shoe.remaining_cards() / 52)
+                TC = self.get_current_true_count()
 
                 move = self.player.get_move(curr_hand, dealer_upcard, TC)
 
@@ -108,8 +111,8 @@ class BlackJackGame:
         
         for _ in range(2):
             for i in range(num_hands):
-                players_hands_cards[i].append(self.shoe.deal_card())
-            dealer_cards.append(self.shoe.deal_card())
+                players_hands_cards[i].append(self.deal_card_take_count())
+            dealer_cards.append(self.deal_card_take_count())
                 
         return players_hands_cards, dealer_cards
 
@@ -152,7 +155,7 @@ class BlackJackGame:
                 else:
                     self.player.bankroll += self.table_settings.payout_blackjack * hand.bet
                     self.stats.record_win()
-            if hand.value > 21:
+            elif hand.value > 21:
                 self.player.bankroll -= hand.bet
                 self.stats.record_loss()
             elif dealer_total > 21 or hand.value > dealer_total:
@@ -167,3 +170,11 @@ class BlackJackGame:
                 
     def check_blackjack(self, hand: PlayerHand) -> bool:
         return len(hand.cards) == 2 and hand.value == 21
+    
+
+    def get_current_true_count(self) -> int:
+        remaining_decks = self.shoe.remaining_cards() / 52
+        rounded = math.ceil(remaining_decks * 2) / 2 # rounds up to nearest 0.5
+        if rounded == 0:
+            return 0
+        return self.current_count // rounded

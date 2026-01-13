@@ -12,7 +12,7 @@ class BetSpread:
         else:
             self.spread = spread
 
-    def get_bet(self, true_count):
+    def get_bet(self, true_count: int) -> int:
         for ramp_point in self.spread:
             if true_count <= ramp_point[0]:
                 return ramp_point[1]

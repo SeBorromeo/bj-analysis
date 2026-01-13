@@ -1,13 +1,23 @@
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
 class BJTableSettings:
-    def __init__(self, num_decks=6, dealer_hits_soft_17=False, double_after_split=True, allow_surrender=False,
-        payout_blackjack=1.5, insurance_payout=2, side_bets=None, penetration=0.75, shuffle_point=None, cut_card_position=None,
-        resplit_aces=False, max_splits=3, min_bet=5, max_bet=500, table_limits=None, continuous_shuffle_machine=False, 
-        num_hands=1, payout=1
-    ):
-        self.num_decks = num_decks
-        self.dealer_hits_soft_17 = dealer_hits_soft_17
-        self.double_after_split = double_after_split
-        self.allow_surrender = allow_surrender
-        self.payout_blackjack = payout_blackjack
-        self.insurance_payout = insurance_payout
-        self.payout = payout
+    num_decks: int = 6
+    dealer_hits_soft_17: bool = False
+    double_after_split: bool = True
+    allow_surrender: bool = False
+    payout_blackjack: float = 1.5
+    insurance_payout: float = 2
+    payout: float = 1
+    side_bets: Optional[list[str]] = None
+    penetration: float = 0.75
+    shuffle_point: Optional[int] = None
+    cut_card_position: Optional[int] = None
+    resplit_aces: bool = False
+    max_splits: int = 3
+    min_bet: int = 5
+    max_bet: int = 500
+    table_limits: Optional[list[int]] = None
+    continuous_shuffle_machine: bool = False
+    num_hands: int = 1
