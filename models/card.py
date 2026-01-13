@@ -11,10 +11,18 @@ class Rank(Enum):
     EIGHT = 8
     NINE  = 9
     TEN   = 10
-    JACK  = 10
-    QUEEN = 10
-    KING  = 10
-    ACE   = 11   # soft value
+    ACE   = 11
+    JACK  = 12
+    QUEEN = 13
+    KING  = 14
+
+    @property
+    def value(self):
+        if self in (Rank.JACK, Rank.QUEEN, Rank.KING):
+            return 10
+        if self == Rank.ACE:
+            return 11
+        return self._value_
 
 class Suit(Enum):
     SPADES   = "S"
@@ -27,22 +35,27 @@ class Card:
     rank: Rank
     suit: Suit
 
+    SUIT_SYMBOLS = {
+        Suit.SPADES: "♠",
+        Suit.HEARTS: "♥",
+        Suit.DIAMONDS: "♦",
+        Suit.CLUBS: "♣"
+    }
+
+    RANK_DISPLAY = {
+        Rank.ACE: "A",
+        Rank.JACK: "J",
+        Rank.QUEEN: "Q",
+        Rank.KING: "K",
+    }
+
+    for r in Rank:
+        if r not in RANK_DISPLAY:
+            RANK_DISPLAY[r] = str(r.value)
+
     @property
     def value(self) -> int:
         return self.rank.value
     
     def __repr__(self) -> str:
-        suit_symbols = {
-            Suit.SPADES: "♠",
-            Suit.HEARTS: "♥",
-            Suit.DIAMONDS: "♦",
-            Suit.CLUBS: "♣"
-        }
-        rank_display = {
-            Rank.ACE: "A",
-            Rank.KING: "K",
-            Rank.QUEEN: "Q",
-            Rank.JACK: "J",
-            **{r: str(r.value) for r in Rank if r.value <= 10}
-        }
-        return f"{rank_display[self.rank]}{suit_symbols[self.suit]}"
+        return f"{self.RANK_DISPLAY[self.rank]}{self.SUIT_SYMBOLS[self.suit]}"

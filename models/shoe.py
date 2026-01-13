@@ -16,7 +16,7 @@ class Shoe:
         random.shuffle(shoe)
 
         # Insert card
-        shoe[int(random.uniform(.25, .35) * len(shoe))] = 'shuffle_card'
+        shoe.insert(int(random.uniform(.25, .35) * len(shoe)), 'shuffle_card')
 
         # Burn first card
         shoe.pop(0)

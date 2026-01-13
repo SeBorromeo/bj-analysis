@@ -1,5 +1,6 @@
 from strategy.bjstrategy import BJStrategy
 from models.card import Card, Rank
+from models.playerHand import PlayerHand
 
 split_table = [
     ['SP', 'SP', 'SP', 'SP', 'SP', 'SP', 'H', 'H', 'H', 'H'], # 2-2
@@ -15,12 +16,12 @@ split_table = [
 ]
 
 ace_table = [
-    ['H', 'H', 'H', 'D', 'D', 'H', 'H', 'H', 'H', 'H'], # A-2
-    ['H', 'H', 'H', 'D', 'D', 'H', 'H', 'H', 'H', 'H'], # A-3
-    ['H', 'H', 'D', 'D', 'D', 'H', 'H', 'H', 'H', 'H'], # A-4
-    ['H', 'H', 'D', 'D', 'D', 'H', 'H', 'H', 'H', 'H'], # A-5
-    ['H', 'D', 'D', 'D', 'D', 'H', 'H', 'H', 'H', 'H'], # A-6
-    ['S', 'D', 'D', 'D', 'D', 'S', 'S', 'H', 'H', 'H'], # A-7
+    ['H', 'H', 'H', 'D', 'D', 'H', 'H', 'H', 'H', 'H'], # A-2 (soft 13)
+    ['H', 'H', 'H', 'D', 'D', 'H', 'H', 'H', 'H', 'H'], # A-3 (soft 14)
+    ['H', 'H', 'D', 'D', 'D', 'H', 'H', 'H', 'H', 'H'], # A-4 (soft 15)
+    ['H', 'H', 'D', 'D', 'D', 'H', 'H', 'H', 'H', 'H'], # A-5 (soft 16)
+    ['H', 'D', 'D', 'D', 'D', 'H', 'H', 'H', 'H', 'H'], # A-6 (soft 17)
+    ['S', 'D', 'D', 'D', 'D', 'S', 'S', 'H', 'H', 'H'], # A-7 (soft 18)
 ]
 
 total_table = [
@@ -35,35 +36,24 @@ total_table = [
 ]
 
 class BJBasicStrategy(BJStrategy):
-    def get_move(self, player_cards: list[Card], dealer_upcard: Card):
-        if len(player_cards) < 2:
+    def get_move(self, hand: PlayerHand, dealer_upcard: Card):
+        if len(hand.cards) < 2:
             raise ValueError("Player must have at least two cards to determine strategy.")
 
-        total = sum(card.value for card in player_cards)
-
-        # Handle hands with more than two cards (no splits or doubles possible)
-        if len(player_cards) > 2:
-            if total < 9:
-                return 'H'
-            elif total >= 17:
-                return 'S'
-            
-            return total_table[total - 9][dealer_upcard.value - 2]
-
         # Handle two-card hands
-        player_card1, player_card2 = player_cards
-        if player_card1.rank == player_card2.rank:
-            return split_table[player_card1.value - 2][dealer_upcard.value - 2]
-        
-        if player_card1.rank == Rank.ACE or player_card2.rank == Rank.ACE:
-            non_ace_card = player_card1 if player_card2.rank == Rank.ACE else player_card2
-            if non_ace_card.value >= 8:
-                return 'S'
+        if len(hand.cards) == 2 and hand.cards[0].rank == hand.cards[1].rank:
+            return split_table[hand.cards[0].value - 2][dealer_upcard.value - 2]
 
-            return ace_table[non_ace_card.value - 2][dealer_upcard.value - 2]
-        
-        if total < 9:
+        # Handle soft totals
+        if hand.soft_value:
+            total_without_ace = hand.value - 11
+            if total_without_ace >= 8:
+                return 'S'
+            return ace_table[total_without_ace - 2][dealer_upcard.value - 2]
+
+        # Handle hard totals        
+        if hand.value < 9:
             return 'H'
-        if total >= 17:
+        if hand.value >= 17:
             return 'S'
-        return total_table[total - 9][dealer_upcard.value - 2]
+        return total_table[hand.value - 9][dealer_upcard.value - 2]

@@ -2,7 +2,6 @@ from models.shoe import Shoe
 from bjtablesettings import BJTableSettings
 from models.player import Player
 from stats import Stats
-from typing import List, Tuple
 from models.card import Card, Rank
 from models.playerHand import PlayerHand
 
@@ -19,11 +18,13 @@ class BlackJackGame:
 
         self.verbose = VERBOSE
 
-    def play_hand(self) -> None:
-        TC = self.current_count / (self.shoe.remaining_cards() / 52)
 
+    def play_hand(self) -> None:
         # If can add more hands in middle of shoe:
         num_hands = 1 # TODO: Use player decision based on count and deviation strategy
+
+        if num_hands <= 0:
+            raise ValueError("Number of hands must be at least 1.")
 
         bet = 10 # TODO: Use bet spread and count to determine bet size
 
@@ -37,6 +38,9 @@ class BlackJackGame:
             if self.verbose:
                 print(f"Hand is {curr_hand}, Dealer upcard is {dealer_upcard}")
 
+            if self.check_blackjack(curr_hand):
+                continue
+
             hand_over = False
             while not hand_over:
                 # Ensure hand has at least two cards (single cards can be left over from splits)
@@ -47,7 +51,9 @@ class BlackJackGame:
                     if self.verbose:
                         print(f"Dealing second card: {new_card}")
 
-                move = self.player.get_move(curr_hand.cards, dealer_upcard)
+                TC = self.current_count / (self.shoe.remaining_cards() / 52)
+
+                move = self.player.get_move(curr_hand, dealer_upcard, TC)
 
                 if move not in ['H', 'S', 'D', 'SP']:
                     raise ValueError(f"Invalid move: {move}")
@@ -96,7 +102,7 @@ class BlackJackGame:
         self.evaluate_hands(hands, dealer_total)
 
 
-    def initial_deal(self, num_hands: int) -> Tuple[List[List[Card]], List[Card]]:
+    def initial_deal(self, num_hands: int) -> tuple[list[list[Card]], list[Card]]:
         players_hands_cards = [[] for _ in range(num_hands)]
         dealer_cards = []
         
@@ -113,7 +119,8 @@ class BlackJackGame:
         self.current_count += self.player.counting_strategy.get_tag(card)
         return card
     
-    def play_dealer_hand(self, dealer_hand: List[Card]) -> int:
+
+    def play_dealer_hand(self, dealer_hand: list[Card]) -> int:
         dealer_total = sum(card.value for card in dealer_hand)
         dealer_soft = any(card.rank == Rank.ACE for card in dealer_hand)
 
@@ -138,6 +145,13 @@ class BlackJackGame:
 
     def evaluate_hands(self, player_hands: list[PlayerHand], dealer_total: int) -> None:
         for hand in player_hands:
+            if hand.value == 21 and len(hand.cards) == 2:
+                self.stats.record_blackjack()
+                if dealer_total == 21:
+                    self.stats.record_push()
+                else:
+                    self.player.bankroll += self.table_settings.payout_blackjack * hand.bet
+                    self.stats.record_win()
             if hand.value > 21:
                 self.player.bankroll -= hand.bet
                 self.stats.record_loss()
@@ -149,3 +163,7 @@ class BlackJackGame:
                 self.stats.record_loss()
             else:
                 self.stats.record_push()
+
+                
+    def check_blackjack(self, hand: PlayerHand) -> bool:
+        return len(hand.cards) == 2 and hand.value == 21

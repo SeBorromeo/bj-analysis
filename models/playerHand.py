@@ -19,12 +19,12 @@ class PlayerHand:
         total = sum(card.value for card in self.cards)
         num_aces = sum(1 for card in self.cards if card.rank == Rank.ACE)
         
-        while num_aces > 0 and total + 10 <= 21:
-            total += 10
+        while num_aces > 0 and total > 21:
+            total -= 10
             num_aces -= 1
         
         self.value = total
-        self.soft_value = any(card.rank == Rank.ACE for card in self.cards) and total <= 21
+        self.soft_value = num_aces > 0
 
     def __repr__(self) -> str:
         return repr(self.cards)
