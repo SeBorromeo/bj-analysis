@@ -11,7 +11,7 @@ class BJEngine:
         for iter in range(N_SIMULATIONS):
             if iter % 1000 == 0:
                 print(f"Running simulation {iter}/{N_SIMULATIONS}")
-            self.game.play_hand()
+            self.game.play_round()
     
     def printResults(self):
         print("===== Simulation Results =====")

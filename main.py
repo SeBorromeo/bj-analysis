@@ -6,7 +6,7 @@ from bjtablesettings import BJTableSettings
 def main():
     player = Player(name="TestPlayer", bankroll=1000,
         bet_spread = BetSpread([
-            (float('-inf'), 0),
+            (float('-inf'), 1),
             (0, 1),
             (1, 3),
             (2, 5),

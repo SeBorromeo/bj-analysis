@@ -5,7 +5,7 @@ from typing import Optional
 class BJTableSettings:
     num_decks: int = 6
     dealer_hits_soft_17: bool = False
-    double_after_split: bool = True
+    double_after_split: bool = True # Deciding if I keep here or in BJBasicStrategy
     allow_surrender: bool = False
     payout_blackjack: float = 1.5
     insurance_payout: float = 2

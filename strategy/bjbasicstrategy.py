@@ -3,16 +3,16 @@ from models.card import Card, Rank
 from models.playerHand import PlayerHand
 
 split_table = [
-    ['SP', 'SP', 'SP', 'SP', 'SP', 'SP', 'H', 'H', 'H', 'H'], # 2-2
-    ['SP', 'SP', 'SP', 'SP', 'SP', 'SP', 'H', 'H', 'H', 'H'], # 3-3
-    ['H', 'H', 'H', 'SP', 'SP', 'SP', 'H', 'H', 'H', 'H'], # 4-4
+    ['SPD', 'SPD', 'SP', 'SP', 'SP', 'SP', 'H', 'H', 'H', 'H'], # 2-2
+    ['SPD', 'SPD', 'SP', 'SP', 'SP', 'SP', 'H', 'H', 'H', 'H'], # 3-3
+    ['H', 'H', 'H', 'SPD', 'SPD', 'SPD', 'H', 'H', 'H', 'H'], # 4-4
     ['D', 'D', 'D', 'D', 'D', 'D', 'D', 'D', 'H', 'H'], # 5-5
-    ['SP', 'SP', 'SP', 'SP', 'SP', 'H', 'H', 'H', 'H', 'H'], # 6-6
+    ['SPD', 'SP', 'SP', 'SP', 'SP', 'H', 'H', 'H', 'H', 'H'], # 6-6
     ['SP', 'SP', 'SP', 'SP', 'SP', 'SP', 'H', 'H', 'H', 'H'], # 7-7
     ['SP', 'SP', 'SP', 'SP', 'SP', 'SP', 'SP', 'SP', 'SP', 'SP'], # 8-8
     ['SP', 'SP', 'SP', 'SP', 'SP', 'S', 'SP', 'SP', 'S', 'S'], # 9-9
     ['S', 'S', 'S', 'S', 'S', 'S', 'S', 'S', 'S', 'S'], # 10-10
-    ['SP', 'SP', 'SP', 'SP', 'SP', 'S', 'SP', 'SP', 'SP', 'SP'], # 11-11
+    ['SP', 'SP', 'SP', 'SP', 'SP', 'SP', 'SP', 'SP', 'SP', 'SP'], # A-A
 ]
 
 ace_table = [
@@ -21,7 +21,7 @@ ace_table = [
     ['H', 'H', 'D', 'D', 'D', 'H', 'H', 'H', 'H', 'H'], # A-4 (soft 15)
     ['H', 'H', 'D', 'D', 'D', 'H', 'H', 'H', 'H', 'H'], # A-5 (soft 16)
     ['H', 'D', 'D', 'D', 'D', 'H', 'H', 'H', 'H', 'H'], # A-6 (soft 17)
-    ['S', 'D', 'D', 'D', 'D', 'S', 'S', 'H', 'H', 'H'], # A-7 (soft 18)
+    ['S', 'DS', 'DS', 'DS', 'DS', 'S', 'S', 'H', 'H', 'H'], # A-7 (soft 18)
 ]
 
 total_table = [
@@ -31,18 +31,25 @@ total_table = [
     ['H', 'H', 'S', 'S', 'S', 'H', 'H', 'H', 'H', 'H'], # 12
     ['S', 'S', 'S', 'S', 'S', 'H', 'H', 'H', 'H', 'H'], # 13
     ['S', 'S', 'S', 'S', 'S', 'H', 'H', 'H', 'H', 'H'], # 14
-    ['S', 'S', 'S', 'S', 'S', 'H', 'H', 'H', 'H', 'H'], # 15
-    ['S', 'S', 'S', 'S', 'S', 'H', 'H', 'H', 'H', 'H'], # 16
+    ['S', 'S', 'S', 'S', 'S', 'H', 'H', 'H', 'RH', 'H'], # 15
+    ['S', 'S', 'S', 'S', 'S', 'H', 'H', 'RH', 'RH', 'RH'], # 16
 ]
 
 class BJBasicStrategy(BJStrategy):
-    def get_move(self, hand: PlayerHand, dealer_upcard: Card):
+    def __init__(self, double_after_split: bool = True):
+        self.double_after_split = double_after_split
+    
+
+    def get_move(self, hand: PlayerHand, dealer_upcard: Card) -> str:
         if len(hand.cards) < 2:
             raise ValueError("Player must have at least two cards to determine strategy.")
 
-        # Handle two-card hands
+        # Handle split
         if len(hand.cards) == 2 and hand.cards[0].rank == hand.cards[1].rank:
-            return split_table[hand.cards[0].value - 2][dealer_upcard.value - 2]
+            move = split_table[hand.cards[0].value - 2][dealer_upcard.value - 2]
+            if move == 'SP' or (move == 'SPD' and self.double_after_split):
+                return 'SP'
+            return self._get_move_from_total(hand.value, dealer_upcard) 
 
         # Handle soft totals
         if hand.soft_value:
@@ -52,8 +59,12 @@ class BJBasicStrategy(BJStrategy):
             return ace_table[total_without_ace - 2][dealer_upcard.value - 2]
 
         # Handle hard totals        
-        if hand.value < 9:
+        return self._get_move_from_total(hand.value, dealer_upcard)
+
+
+    def _get_move_from_total(self, total: int, dealer_upcard: Card) -> str:
+        if total < 9:
             return 'H'
-        if hand.value >= 17:
+        if total >= 17:
             return 'S'
-        return total_table[hand.value - 9][dealer_upcard.value - 2]
+        return total_table[total - 9][dealer_upcard.value - 2]

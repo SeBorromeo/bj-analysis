@@ -7,6 +7,7 @@ class PlayerHand:
         self.bet = bet
         self.value = 0
         self.soft_value = False
+        self.surrender = False
 
         if cards:
             self._recalculate_value()
