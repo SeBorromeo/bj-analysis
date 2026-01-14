@@ -6,7 +6,7 @@ from stats import Stats
 from models.card import Card, Rank
 from models.playerHand import PlayerHand
 
-VERBOSE = False
+VERBOSE = True
 
 class BlackJackGame:
     def __init__(self, player: Player, table_settings: BJTableSettings, stats: Stats):
@@ -32,17 +32,24 @@ class BlackJackGame:
         bet = 10 * bet_mult
 
         # Deal initial cards
-        players_hands_cards, dealer_hand = self._initial_deal(num_hands)
-        dealer_upcard = dealer_hand[1]
+        players_hands_cards, dealer_cards = self._initial_deal(num_hands)
+        dealer_upcard = dealer_cards[1]
 
         hands = [PlayerHand(cards, bet) for cards in players_hands_cards]
+
+        if self._check_blackjack(dealer_cards):
+            if self.verbose:
+                print(f"Dealer has blackjack with hand {dealer_cards}")
+            
+            self._evaluate_hands(hands, dealer_total=21)
+            return
         
         num_splits = 0
         for i, curr_hand in enumerate(hands):
             if self.verbose:
                 print(f"Hand is {curr_hand}, Dealer upcard is {dealer_upcard}")
 
-            if self._check_blackjack(curr_hand):
+            if self._check_blackjack(curr_hand.cards):
                 continue
 
             hand_over = False
@@ -95,13 +102,13 @@ class BlackJackGame:
                     hand_over = self._hit(curr_hand)
                     
         if self.verbose:
-            print(f"Dealer hand is {dealer_hand}")
+            print(f"Dealer hand is {dealer_cards}")
 
         # Dealer plays hand
-        dealer_total = self._play_dealer_hand(dealer_hand)
+        dealer_total = self._play_dealer_hand(dealer_cards)
         
         if self.verbose:
-            print(f"Dealer final hand: {dealer_hand}")
+            print(f"Dealer final hand: {dealer_cards}")
 
         self._evaluate_hands(hands, dealer_total)
 
@@ -198,8 +205,8 @@ class BlackJackGame:
                 self.stats.record_push()
 
                 
-    def _check_blackjack(self, hand: PlayerHand) -> bool:
-        return len(hand.cards) == 2 and hand.value == 21
+    def _check_blackjack(self, cards: list[Card]) -> bool:
+        return len(cards) == 2 and sum(card.value for card in cards) == 21
     
 
     def _get_current_true_count(self) -> int:
