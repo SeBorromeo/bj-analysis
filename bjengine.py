@@ -1,10 +1,11 @@
 from bjgame import BlackJackGame
 from stats import Stats
+from models.player import Player
 
 class BJEngine:
-    def __init__(self, player, table_settings):
-        self.stats = Stats()
+    def __init__(self, player: Player, table_settings):
         self.player = player
+        self.stats = Stats(starting_bankroll=player.bankroll)
         self.game = BlackJackGame(player, table_settings, self.stats)
 
     def runNSimulations(self, N_SIMULATIONS):

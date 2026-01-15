@@ -6,7 +6,7 @@ from stats import Stats
 from models.card import Card, Rank
 from models.playerHand import PlayerHand
 
-VERBOSE = True
+VERBOSE = False
 
 class BlackJackGame:
     def __init__(self, player: Player, table_settings: BJTableSettings, stats: Stats):
@@ -125,7 +125,6 @@ class BlackJackGame:
         if self.verbose:
             print("Doubling down, new card: ", new_card)
 
-    
 
     def _hit(self, hand: PlayerHand) -> bool:
         new_card = self._deal_card_take_count()
@@ -187,22 +186,21 @@ class BlackJackGame:
         for hand in player_hands:
             if hand.surrender:
                 self.player.bankroll -= hand.bet / 2
-                self.stats.record_loss()
-            elif hand.value == 21 and len(hand.cards) == 2:
-                self.stats.record_blackjack()
+                self.stats.record_hand(bet=hand.bet, payout=hand.bet / 2, is_blackjack=False)
+            elif self._check_blackjack(hand.cards):
                 if dealer_total == 21:
-                    self.stats.record_push()
+                    self.stats.record_hand(bet=hand.bet, payout=0, is_blackjack=False)
                 else:
                     self.player.bankroll += self.table_settings.payout_blackjack * hand.bet
-                    self.stats.record_win()
+                    self.stats.record_hand(bet=hand.bet, payout=self.table_settings.payout_blackjack * hand.bet, is_blackjack=True)
             elif hand.value > 21 or hand.value < dealer_total <= 21: 
                 self.player.bankroll -= hand.bet
-                self.stats.record_loss()
+                self.stats.record_hand(bet=hand.bet, payout=-hand.bet, is_blackjack=False)
             elif dealer_total > 21 or hand.value > dealer_total:
                 self.player.bankroll += self.table_settings.payout * hand.bet
-                self.stats.record_win()
+                self.stats.record_hand(bet=hand.bet, payout=self.table_settings.payout * hand.bet, is_blackjack=False)
             else:
-                self.stats.record_push()
+                self.stats.record_hand(bet=hand.bet, payout=0, is_blackjack=False)
 
                 
     def _check_blackjack(self, cards: list[Card]) -> bool:
@@ -211,7 +209,7 @@ class BlackJackGame:
 
     def _get_current_true_count(self) -> int:
         remaining_decks = self.shoe.remaining_cards() / 52
-        rounded = math.ceil(remaining_decks * 2) / 2 # rounds up to nearest 0.5
-        if rounded == 0:
+        rounded_remaining_decks = math.ceil(remaining_decks * 2) / 2 # rounds up to nearest 0.5
+        if rounded_remaining_decks == 0:
             return 0
-        return self.current_count // rounded
+        return self.current_count // rounded_remaining_decks

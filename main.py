@@ -17,13 +17,13 @@ def main():
     table_settings = BJTableSettings() # default settings
 
     engine = BJEngine(player, table_settings)
-    while True:
-        print("\n")
-        input("Press Enter to run a simulation...")    
-        engine.runNSimulations(1)
-        engine.printResults()
+    # while True:
+    #     print("\n")
+    #     input("Press Enter to run a simulation...")    
+    #     engine.runNSimulations(1)
+    #     engine.printResults()
 
-    engine.runNSimulations(100000)
+    engine.runNSimulations(1000000)
     engine.printResults()
 
 if __name__ == "__main__":
