@@ -1,4 +1,5 @@
-from models.betspread import BetSpread
+from bj_sim.strategy.betting.betting_ramp import BettingRamp
+from bj_sim.strategy.betting.bettingstrategy import BettingStrategy
 from models.card import Card
 from strategy.bjstrategy import BJStrategy
 from strategy.hilocounting import HiLo
@@ -10,7 +11,7 @@ class Player:
         name: str, 
         bankroll: int, 
         bj_strategy: BJStrategy = BJBasicStrategy(), 
-        bet_spread: BetSpread = BetSpread(), 
+        bet_spread: BettingStrategy = BettingRamp(), 
         counting_strategy: CountingStrategy = HiLo(),
         deviation_strategy={}
     ):

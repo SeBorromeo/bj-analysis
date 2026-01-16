@@ -2,7 +2,7 @@ import math
 from models.shoe import Shoe
 from bjtablesettings import BJTableSettings
 from models.player import Player
-from stats import Stats
+from bj_sim.game.stats import Stats
 from models.card import Card, Rank
 from models.playerHand import PlayerHand
 

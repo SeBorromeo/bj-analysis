@@ -1,6 +1,6 @@
-from bjengine import BJEngine
-from models.betspread import BetSpread
-from models.player import Player
+from bj_sim_engine import BJEngine
+from game.betspread import BetSpread
+from game.player import Player
 from bjtablesettings import BJTableSettings
 
 def main():

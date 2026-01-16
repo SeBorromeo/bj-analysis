@@ -1,5 +1,5 @@
 from typing import List
-from models.card import Card, Rank
+from .card import Card, Rank
 
 class PlayerHand:
     def __init__(self, cards: List[Card] = [], bet: int = 0):

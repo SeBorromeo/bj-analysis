@@ -1,6 +1,5 @@
-from strategy.bjstrategy import BJStrategy
-from models.card import Card, Rank
-from models.playerHand import PlayerHand
+from models.card import Card
+from game.playerHand import PlayerHand
 
 split_table = [
     ['SPD', 'SPD', 'SP', 'SP', 'SP', 'SP', 'H', 'H', 'H', 'H'], # 2-2
@@ -35,7 +34,7 @@ total_table = [
     ['S', 'S', 'S', 'S', 'S', 'H', 'H', 'RH', 'RH', 'RH'], # 16
 ]
 
-class BJBasicStrategy(BJStrategy):
+class BasicPlayStrategy:
     def __init__(self, double_after_split: bool = True):
         self.double_after_split = double_after_split
     

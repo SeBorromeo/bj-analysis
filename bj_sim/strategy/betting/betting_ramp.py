@@ -1,4 +1,4 @@
-class BetSpread:
+class BettingRamp:
     def __init__(self, spread=None):
         if spread is None:
             self.spread = [
@@ -11,6 +11,7 @@ class BetSpread:
             ]
         else:
             self.spread = spread
+
 
     def get_bet(self, true_count: int) -> int:
         for ramp_point in self.spread:

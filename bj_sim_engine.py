@@ -1,6 +1,6 @@
-from bjgame import BlackJackGame
-from stats import Stats
-from models.player import Player
+from bj_sim.game.stats import Stats
+from bj_sim.game.core.bj_game import BlackJackGame
+from bj_sim.game.player import Player
 
 class BJEngine:
     def __init__(self, player: Player, table_settings):
