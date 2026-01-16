@@ -1,4 +1,4 @@
-from .card import Card
+from .models.card import Card
 from bj_sim.strategy.betting.betting_ramp import BettingRamp
 from bj_sim.strategy.betting.bettingstrategy import BettingStrategy
 
@@ -23,5 +23,6 @@ class Player:
         self.counting_strategy = counting_strategy
         self.deviation_strategy = deviation_strategy
     
+
     def get_move(self, player_cards: list[Card], dealer_upcard: Card, true_count: int) -> str:
         return self.bj_strategy.get_move(player_cards, dealer_upcard)
