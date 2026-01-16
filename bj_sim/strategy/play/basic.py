@@ -36,35 +36,27 @@ total_table = [
 ]
 
 class BasicPlayStrategy:
-    def __init__(self, double_after_split: bool = True):
-        self.double_after_split = double_after_split
-    
-
     def get_move(self, hand: PlayerHand, dealer_upcard: Card) -> PlayMove:
         if len(hand.cards) < 2:
             raise ValueError("Player must have at least two cards to determine strategy.")
 
         # Handle split
         if len(hand.cards) == 2 and hand.cards[0].rank == hand.cards[1].rank:
-            move = split_table[hand.cards[0].value - 2][dealer_upcard.value - 2]
-            if move == 'SP' or (move == 'SPD' and self.double_after_split):
-                return 'SP'
-            return self._get_move_from_total(hand.value, dealer_upcard) 
+            return PlayMove(split_table[hand.cards[0].value - 2][dealer_upcard.value - 2])
 
         # Handle soft totals
         if hand.soft_value:
             total_without_ace = hand.value - 11
             if total_without_ace >= 8:
-                return 'S'
-            return ace_table[total_without_ace - 2][dealer_upcard.value - 2]
+                return PlayMove.STAND
+            return PlayMove(ace_table[total_without_ace - 2][dealer_upcard.value - 2])
 
         # Handle hard totals        
-        return self._get_move_from_total(hand.value, dealer_upcard)
-
+        return PlayMove(self._get_move_from_total(hand.value, dealer_upcard))
 
     def _get_move_from_total(self, total: int, dealer_upcard: Card) -> str:
         if total < 9:
-            return 'H'
+            return PlayMove.HIT
         if total >= 17:
-            return 'S'
-        return total_table[total - 9][dealer_upcard.value - 2]
+            return PlayMove.STAND
+        return PlayMove(total_table[total - 9][dealer_upcard.value - 2])

@@ -1,10 +1,21 @@
 import math
 from bj_sim.game.models.shoe import Shoe
+from bj_sim.strategy.play.playstrategy import PlayMove
 from .bj_table_settings import BJTableSettings
 from bj_sim.game.models.player import Player
 from bj_sim.game.observers.stats import Stats
 from bj_sim.game.models.card import Card, Rank
 from bj_sim.game.models.player_hand import PlayerHand
+
+HIT, STAND, DOUBLE, DOUBLE_STAND, SPLIT, SPLIT_IF_DAS, SURRENDER_HIT = (
+    PlayMove.HIT,
+    PlayMove.STAND,
+    PlayMove.DOUBLE,
+    PlayMove.DOUBLE_STAND,
+    PlayMove.SPLIT,
+    PlayMove.SPLIT_IF_DAS,
+    PlayMove.SURRENDER_HIT,
+)
 
 VERBOSE = False
 
@@ -21,14 +32,15 @@ class BlackJackGame:
 
 
     def play_round(self) -> None:
+        true_count = self._get_current_true_count()
+
         # If can add more hands in middle of shoe:
         num_hands = 1 # TODO: Use player decision based on count and deviation strategy
 
         if num_hands <= 0:
-            raise ValueError("Number of hands must be at least 1.")
+            raise ValueError("Number of hands must be at least 1")
 
-        TC = self._get_current_true_count()
-        bet_mult = self.player.betting_strategy.get_bet(TC)
+        bet_mult = self.player.betting_strategy.get_bet(true_count)
         bet = 10 * bet_mult
 
         # Deal initial cards
@@ -38,78 +50,14 @@ class BlackJackGame:
         hands = [PlayerHand(cards, bet) for cards in players_hands_cards]
 
         if self._check_blackjack(dealer_cards):
-            if self.verbose:
-                print(f"Dealer has blackjack with hand {dealer_cards}")
-            
+            self._log(f"Dealer has blackjack with hand {dealer_cards}")
             self._evaluate_hands(hands, dealer_total=21)
             return
-        
-        num_splits = 0
-        for i, curr_hand in enumerate(hands):
-            if self.verbose:
-                print(f"Hand is {curr_hand}, Dealer upcard is {dealer_upcard}")
 
-            if self._check_blackjack(curr_hand.cards):
-                continue
-
-            hand_over = False
-            while not hand_over:
-                # Ensure hand has at least two cards (single cards can be left over from splits)
-                if len(curr_hand.cards) == 1:
-                    new_card = self._deal_card_take_count()
-                    curr_hand.add_card(new_card)
-
-                    if self.verbose:
-                        print(f"Dealing second card: {new_card}")
-
-                TC = self._get_current_true_count()
-
-                move = self.player.get_move(curr_hand, dealer_upcard, TC)
-
-                if move not in ['H', 'S', 'D', 'DS', 'SP', 'SPD', 'RH']:
-                    raise ValueError(f"Invalid move: {move}")
-
-                if move == 'RH' and self.table_settings.allow_surrender:
-                    if self.verbose:
-                        print("Surrendering hand")
-
-                    curr_hand.surrender = True
-
-                    hand_over = True
-                elif move == 'SP' or (move == 'SPD' and self.table_settings.double_after_split):
-                    num_splits += 1
-                    if num_splits > self.table_settings.max_splits:
-                        if self.verbose:
-                            print("Max splits reached, cannot split further.")
-
-                        hand_over = True
-                        continue
-
-                    if self.verbose:
-                        print("Splitting hand")
-
-                    second_card = curr_hand.cards.pop()
-                    hands.insert(i + 1, PlayerHand([second_card], curr_hand.bet))
-                elif (move == 'D' or move == 'DS') and (self.table_settings.double_after_split or not self.table_settings.double_after_split and num_splits == 0):
-                    hand_over = True
-                    self._double(curr_hand)
-                elif move == 'S' or move == 'DS':
-                    if self.verbose:
-                        print("Standing")
+        self._play_player_hands(hands, dealer_upcard)
                     
-                    hand_over = True
-                else:
-                    hand_over = self._hit(curr_hand)
-                    
-        if self.verbose:
-            print(f"Dealer hand is {dealer_cards}")
-
-        # Dealer plays hand
         dealer_total = self._play_dealer_hand(dealer_cards)
         
-        if self.verbose:
-            print(f"Dealer final hand: {dealer_cards}")
-
         self._evaluate_hands(hands, dealer_total)
 
 
@@ -122,21 +70,18 @@ class BlackJackGame:
         new_card = self._deal_card_take_count()
         hand.add_card(new_card)
 
-        if self.verbose:
-            print("Doubling down, new card: ", new_card)
+        self._log(f"Doubling down, new card: {new_card}")
 
 
     def _hit(self, hand: PlayerHand) -> bool:
         new_card = self._deal_card_take_count()
 
-        if self.verbose:
-            print(f"Drew card: {new_card}")
+        self._log(f"Drew card: {new_card}")
 
         hand.add_card(new_card)
 
         if hand.value > 21: # Bust
-            if self.verbose:
-                print("Busted!")
+            self._log("Busted!")
             return True
         return False
 
@@ -159,13 +104,64 @@ class BlackJackGame:
         return card
     
 
-    def _play_dealer_hand(self, dealer_hand: list[Card]) -> int:
-        dealer_total = sum(card.value for card in dealer_hand)
-        dealer_soft = any(card.rank == Rank.ACE for card in dealer_hand)
+    def _play_player_hands(self, hands: list[PlayerHand], dealer_upcard: Card) -> None:
+        num_splits = 0
+        for i, curr_hand in enumerate(hands):
+            self._log(f"Hand is {curr_hand}, Dealer upcard is {dealer_upcard}")
+
+            if self._check_blackjack(curr_hand.cards):
+                continue
+
+            hand_over = False
+            while not hand_over:
+                # Ensure hand has at least two cards (single cards can be left over from splits)
+                if len(curr_hand.cards) == 1:
+                    new_card = self._deal_card_take_count()
+                    curr_hand.add_card(new_card)
+
+                    self._log(f"Dealing second card: {new_card}")
+
+                true_count = self._get_current_true_count()
+
+                move = self.player.get_move(curr_hand, dealer_upcard, true_count)
+
+                if not isinstance(move, PlayMove):
+                    raise ValueError(f"Invalid move: {move}")
+
+                if move == SURRENDER_HIT and self.table_settings.allow_surrender:
+                    self._log("Surrendering hand")
+
+                    curr_hand.surrender = True
+                    hand_over = True
+                elif move == SPLIT or (move == SPLIT_IF_DAS and self.table_settings.double_after_split):
+                    num_splits += 1
+                    if num_splits > self.table_settings.max_splits:
+                        self._log("Max splits reached, cannot split further.")
+                        hand_over = True
+                        continue
+
+                    self._log("Splitting hand")
+
+                    second_card = curr_hand.cards.pop()
+                    hands.insert(i + 1, PlayerHand([second_card], curr_hand.bet))
+                elif (move == DOUBLE or move == DOUBLE_STAND) and (self.table_settings.double_after_split or not self.table_settings.double_after_split and num_splits == 0):
+                    hand_over = True
+                    self._double(curr_hand)
+                elif move == STAND or move == DOUBLE_STAND:
+                    self._log("Standing")
+                    hand_over = True
+                else:
+                    hand_over = self._hit(curr_hand)
+
+    def _play_dealer_hand(self, dealer_cards: list[Card]) -> int:
+        self._log(f"Dealer hand is {dealer_cards}")
+
+        dealer_total = sum(card.value for card in dealer_cards)
+        dealer_soft = any(card.rank == Rank.ACE for card in dealer_cards)
 
         while dealer_total < 17 or (dealer_total == 17 and dealer_soft and self.table_settings.dealer_hits_soft_17):
             new_card = self._deal_card_take_count()
-            dealer_hand.append(new_card)
+            dealer_cards.append(new_card)
 
             if new_card.rank == Rank.ACE:
                 if dealer_total + 11 <= 21:
@@ -178,6 +174,8 @@ class BlackJackGame:
                 if dealer_total > 21 and dealer_soft:
                     dealer_total -= 10
                     dealer_soft = False
+        
+        self._log(f"Dealer final hand: {dealer_cards}")
         
         return dealer_total
     
@@ -213,3 +211,8 @@ class BlackJackGame:
         if rounded_remaining_decks == 0:
             return 0
         return self.current_count // rounded_remaining_decks
+    
+
+    def _log(self, message: str) -> None:
+        if self.verbose:
+            print(message)
