@@ -1,10 +1,11 @@
 import math
+from .bj_table_settings import BJTableSettings
 from bj_sim.game.models.shoe import Shoe
 from bj_sim.strategy.play.playstrategy import PlayMove
-from .bj_table_settings import BJTableSettings
-from bj_sim.game.models.player import Player
-from bj_sim.game.observers.stats import Stats
+from bj_sim.game.player import Player
+from bj_sim.observers.stats import Stats
 from bj_sim.game.models.card import Card, Rank
+from bj_sim.game.models.hand import Hand
 from bj_sim.game.models.player_hand import PlayerHand
 
 HIT, STAND, DOUBLE, DOUBLE_STAND, SPLIT, SPLIT_IF_DAS, SURRENDER_HIT = (
