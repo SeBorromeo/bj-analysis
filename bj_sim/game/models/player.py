@@ -1,24 +1,25 @@
+from .card import Card
 from bj_sim.strategy.betting.betting_ramp import BettingRamp
 from bj_sim.strategy.betting.bettingstrategy import BettingStrategy
-from models.card import Card
-from strategy.bjstrategy import BJStrategy
-from strategy.hilocounting import HiLo
-from strategy.countingstrategy import CountingStrategy
-from strategy.bjbasicstrategy import BJBasicStrategy
+
+from bj_sim.strategy.counting.countingstrategy import CountingStrategy
+from bj_sim.strategy.counting.hilo import HiLoCountingStrategy
+from bj_sim.strategy.play.playstrategy import PlayStrategy
+from bj_sim.strategy.play.basic import BasicPlayStrategy
 
 class Player:
     def __init__(self, 
         name: str, 
         bankroll: int, 
-        bj_strategy: BJStrategy = BJBasicStrategy(), 
-        bet_spread: BettingStrategy = BettingRamp(), 
-        counting_strategy: CountingStrategy = HiLo(),
+        bj_strategy: PlayStrategy = BasicPlayStrategy(), 
+        betting_strategy: BettingStrategy = BettingRamp(), 
+        counting_strategy: CountingStrategy = HiLoCountingStrategy(),
         deviation_strategy={}
     ):
         self.name = name
         self.bankroll = bankroll
         self.bj_strategy = bj_strategy
-        self.bet_spread = bet_spread
+        self.betting_strategy = betting_strategy
         self.counting_strategy = counting_strategy
         self.deviation_strategy = deviation_strategy
     

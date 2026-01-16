@@ -1,10 +1,10 @@
 import math
-from models.shoe import Shoe
-from bjtablesettings import BJTableSettings
-from models.player import Player
-from bj_sim.game.stats import Stats
-from models.card import Card, Rank
-from models.playerHand import PlayerHand
+from bj_sim.game.models.shoe import Shoe
+from .bj_table_settings import BJTableSettings
+from bj_sim.game.models.player import Player
+from bj_sim.game.observers.stats import Stats
+from bj_sim.game.models.card import Card, Rank
+from bj_sim.game.models.player_hand import PlayerHand
 
 VERBOSE = False
 
@@ -28,7 +28,7 @@ class BlackJackGame:
             raise ValueError("Number of hands must be at least 1.")
 
         TC = self._get_current_true_count()
-        bet_mult = self.player.bet_spread.get_bet(TC)
+        bet_mult = self.player.betting_strategy.get_bet(TC)
         bet = 10 * bet_mult
 
         # Deal initial cards

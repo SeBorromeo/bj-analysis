@@ -1,12 +1,23 @@
-from bj_sim.game.stats import Stats
-from bj_sim.game.core.bj_game import BlackJackGame
-from bj_sim.game.player import Player
+from bj_sim.game.observers.stats import Stats
+from bj_sim.game.bj_game import BlackJackGame
+from bj_sim.game.models.player import Player
+from bj_sim import Stats, BlackJackGame, BJTableSettings, BettingRamp
 
 class BJEngine:
-    def __init__(self, player: Player, table_settings):
-        self.player = player
-        self.stats = Stats(starting_bankroll=player.bankroll)
-        self.game = BlackJackGame(player, table_settings, self.stats)
+    def __init__(self):
+        self.player = Player(name="TestPlayer", bankroll=1000,
+            betting_strategy = BettingRamp([
+                (float('-inf'), 1),
+                (0, 1),
+                (1, 3),
+                (2, 5),
+                (3, 8),
+                (4, 12)
+            ]),              
+        )
+        self.table_settings = BJTableSettings() # default settings
+        self.stats = Stats(starting_bankroll=self.player.bankroll)
+        self.game = BlackJackGame(self.player, self.table_settings, self.stats)
 
     def runNSimulations(self, N_SIMULATIONS):
         for iter in range(N_SIMULATIONS):

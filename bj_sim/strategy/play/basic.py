@@ -1,5 +1,5 @@
-from models.card import Card
-from game.playerHand import PlayerHand
+from bj_sim.game.models.card import Card
+from bj_sim.game.models.player_hand import PlayerHand
 
 split_table = [
     ['SPD', 'SPD', 'SP', 'SP', 'SP', 'SP', 'H', 'H', 'H', 'H'], # 2-2

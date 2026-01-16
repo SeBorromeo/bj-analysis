@@ -1,4 +1,4 @@
-from models.card import Card, Rank, Suit
+from .card import Card, Rank, Suit
 import random
 
 class Shoe:

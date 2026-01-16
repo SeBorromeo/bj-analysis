@@ -1,4 +1,4 @@
-from models.card import Card
+from bj_sim.game.models.card import Card
 
 ZEN_TAGS = [
     1,  # 2
