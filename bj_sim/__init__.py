@@ -1,8 +1,8 @@
 from .game.bj_game import BlackJackGame
 from .game.bj_table_settings import BJTableSettings
-from .game.observers.stats import Stats
+from .observers.stats import Stats
 
-from .game.models.player import Player
+from .game.player import Player
 from .game.models.card import Card, Rank, Suit
 from .game.models.shoe import Shoe
 from .game.models.player_hand import PlayerHand
