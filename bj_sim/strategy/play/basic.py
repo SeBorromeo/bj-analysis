@@ -1,5 +1,6 @@
 from bj_sim.game.models.card import Card
 from bj_sim.game.models.player_hand import PlayerHand
+from .playstrategy import PlayMove
 
 split_table = [
     ['SPD', 'SPD', 'SP', 'SP', 'SP', 'SP', 'H', 'H', 'H', 'H'], # 2-2
@@ -39,7 +40,7 @@ class BasicPlayStrategy:
         self.double_after_split = double_after_split
     
 
-    def get_move(self, hand: PlayerHand, dealer_upcard: Card) -> str:
+    def get_move(self, hand: PlayerHand, dealer_upcard: Card) -> PlayMove:
         if len(hand.cards) < 2:
             raise ValueError("Player must have at least two cards to determine strategy.")
 
