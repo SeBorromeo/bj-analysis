@@ -1,31 +1,34 @@
 from typing import List
 from .card import Card, Rank
+from .hand import Hand
 
-class PlayerHand:
+class PlayerHand(Hand):
     def __init__(self, cards: List[Card] = [], bet: int = 0):
-        self.cards = cards
-        self.bet = bet
-        self.value = 0
-        self.soft_value = False
-        self.surrender = False
+        super().__init__(cards)
+        self._bet = bet
+        self._surrender = False
+        self._hasDoubled = False
 
-        if cards:
-            self._recalculate_value()
-    
-    def add_card(self, card: Card):
-        self.cards.append(card)
-        self._recalculate_value()
-    
-    def _recalculate_value(self):
-        total = sum(card.value for card in self.cards)
-        num_aces = sum(1 for card in self.cards if card.rank == Rank.ACE)
-        
-        while num_aces > 0 and total > 21:
-            total -= 10
-            num_aces -= 1
-        
-        self.value = total
-        self.soft_value = num_aces > 0
 
-    def __repr__(self) -> str:
-        return repr(self.cards)
+    def double_bet(self):
+        if not self._hasDoubled:
+            self._hasDoubled = True
+            self._bet *= 2
+        else:
+            raise ValueError("Cannot double bet more than once per hand.")
+
+
+    def surrender_hand(self):
+        self._surrender = True
+    
+
+    @property
+    def bet(self) -> int:
+        return self._bet
+
+
+    @property
+    def surrender(self) -> bool:
+        return self._surrender
+    
+        

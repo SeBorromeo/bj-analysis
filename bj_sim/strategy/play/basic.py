@@ -45,16 +45,16 @@ class BasicPlayStrategy:
             return PlayMove(split_table[hand.cards[0].value - 2][dealer_upcard.value - 2])
 
         # Handle soft totals
-        if hand.soft_value:
+        if hand.is_soft:
             total_without_ace = hand.value - 11
             if total_without_ace >= 8:
                 return PlayMove.STAND
             return PlayMove(ace_table[total_without_ace - 2][dealer_upcard.value - 2])
 
         # Handle hard totals        
-        return PlayMove(self._get_move_from_total(hand.value, dealer_upcard))
+        return self._get_move_from_total(hand.value, dealer_upcard)
 
-    def _get_move_from_total(self, total: int, dealer_upcard: Card) -> str:
+    def _get_move_from_total(self, total: int, dealer_upcard: Card) -> PlayMove:
         if total < 9:
             return PlayMove.HIT
         if total >= 17:

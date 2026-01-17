@@ -57,5 +57,6 @@ class Card:
     def value(self) -> int:
         return self.rank.value
     
+    
     def __repr__(self) -> str:
         return f"{self.RANK_DISPLAY[self.rank]}{self.SUIT_SYMBOLS[self.suit]}"
