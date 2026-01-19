@@ -3,38 +3,48 @@ import random
 
 class Shoe:
     def __init__(self, num_decks=6):
-        self.num_decks = num_decks
-        self.shoe = self.create_shoe()
+        deck = self._generate_deck()
+        self.shoe = deck * num_decks
+        self.discard_pile = []
 
-    def generate_deck(self) -> list[Card]:
+        self._shuffle_shoe_and_add_shuffle_card()
+
+
+    def _generate_deck(self) -> list[Card]:
         return [Card(rank, suit) for suit in Suit for rank in Rank]
 
-    def create_shoe(self) -> list[Card | str]:
-        deck = self.generate_deck()
-        shoe = deck * self.num_decks
-
-        random.shuffle(shoe)
-
-        # Insert card
-        shoe.insert(int(random.uniform(.25, .35) * len(shoe)), 'shuffle_card')
-
-        # Burn first card
-        shoe.pop(0)
-
-        return shoe
 
     def deal_card(self) -> Card: 
         if len(self.shoe) == 0:
-            # print("Shoe is empty, creating a new shoe...")
-            self.shoe = self.create_shoe()
+            # print("Shoe is empty, resetting shoe...")
+            self.shoe = self.reset_shoe()
 
         card = self.shoe.pop(0)
         if card == 'shuffle_card':
             # print("Reshuffling the shoe...")
-            self.shoe = self.create_shoe()
+            self.reset_shoe()
             card = self.shoe.pop(0)
-        
+            
+        self.discard_pile.append(card)
         return card
+    
+
+    def reset_shoe(self) -> None:
+        self.shoe.extend(self.discard_pile)
+        self.discard_pile.clear()
+
+        self._shuffle_shoe_and_add_shuffle_card()
+
+
+    def _shuffle_shoe_and_add_shuffle_card(self) -> None:
+        random.shuffle(self.shoe)
+
+        # Insert card
+        self.shoe.insert(int(random.uniform(.25, .35) * len(self.shoe)), 'shuffle_card')
+
+        # Burn first card
+        self.discard_pile.append(self.shoe.pop(0))
+
     
     def remaining_cards(self) -> int:
         return len(self.shoe)
