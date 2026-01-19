@@ -4,7 +4,7 @@ from bj_sim.game.models.shoe import Shoe
 from bj_sim.strategy.play.playstrategy import PlayMove
 from bj_sim.game.player import Player
 from bj_sim.observers.stats import Stats
-from bj_sim.game.models.card import Card, Rank
+from bj_sim.game.models.card import Card
 from bj_sim.game.models.hand import Hand
 from bj_sim.game.models.player_hand import PlayerHand
 
@@ -45,7 +45,7 @@ class BlackJackGame:
 
         # Deal initial cards
         player_hands, dealer_hand = self._initial_deal(bet, num_hands)
-        dealer_upcard = dealer_hand.cards[1]
+        dealer_upcard = dealer_hand.cards[0]
 
         if self._check_blackjack(dealer_hand):
             self._log(f"Dealer has blackjack with hand {dealer_hand}")
@@ -106,13 +106,9 @@ class BlackJackGame:
             while not hand_over:
                 # Ensure hand has at least two cards (single cards can be left over from splits)
                 if len(curr_hand.cards) == 1:
-                    new_card = self._deal_card_take_count()
-                    curr_hand.add_card(new_card)
-
-                    self._log(f"Dealing second card: {new_card}")
+                    self._hit(curr_hand)
 
                 true_count = self._get_current_true_count()
-
                 move = self.player.get_move(curr_hand, dealer_upcard, true_count)
 
                 if not isinstance(move, PlayMove):
@@ -120,7 +116,6 @@ class BlackJackGame:
 
                 if move == SURRENDER_HIT and self.table_settings.allow_surrender:
                     self._log("Surrendering hand")
-
                     curr_hand.surrender_hand()
                     hand_over = True
                 elif (move == SPLIT or (move == SPLIT_IF_DAS and self.table_settings.double_after_split)) and num_splits < self.table_settings.max_splits:
@@ -133,8 +128,8 @@ class BlackJackGame:
                     second_card = curr_hand.split_cards()
                     hands.insert(i + 1, PlayerHand([second_card], curr_hand.bet))
                 elif (move == DOUBLE or move == DOUBLE_STAND) and (self.table_settings.double_after_split or num_splits == 0):
-                    hand_over = True
                     self._double(curr_hand)
+                    hand_over = True
                 elif move == STAND or move == DOUBLE_STAND:
                     self._log("Standing")
                     hand_over = True
@@ -153,23 +148,19 @@ class BlackJackGame:
 
     def _evaluate_hands(self, player_hands: list[PlayerHand], dealer_hand: Hand) -> None:
         for hand in player_hands:
+            payout = 0
             if hand.surrender:
-                self.player.bankroll -= hand.bet / 2
-                self.stats.record_hand(bet=hand.bet, payout=-hand.bet / 2, is_blackjack=False)
-            elif self._check_blackjack(hand):
-                if dealer_hand.value == 21:
-                    self.stats.record_hand(bet=hand.bet, payout=0, is_blackjack=False)
-                else:
-                    self.player.bankroll += self.table_settings.payout_blackjack * hand.bet
-                    self.stats.record_hand(bet=hand.bet, payout=self.table_settings.payout_blackjack * hand.bet, is_blackjack=True)
+                payout = -hand.bet / 2
+            elif self._check_blackjack(hand) and not self._check_blackjack(dealer_hand):
+                payout = self.table_settings.payout_blackjack * hand.bet
             elif hand.value > 21 or hand.value < dealer_hand.value <= 21: 
-                self.player.bankroll -= hand.bet
-                self.stats.record_hand(bet=hand.bet, payout=-hand.bet, is_blackjack=False)
+                payout = -hand.bet
             elif dealer_hand.value > 21 or hand.value > dealer_hand.value:
-                self.player.bankroll += self.table_settings.payout * hand.bet
-                self.stats.record_hand(bet=hand.bet, payout=self.table_settings.payout * hand.bet, is_blackjack=False)
-            else:
-                self.stats.record_hand(bet=hand.bet, payout=0, is_blackjack=False)
+                payout = self.table_settings.payout * hand.bet
+            
+            self.player.bankroll += payout
+            self.stats.record_hand(bet=hand.bet, payout=payout, is_blackjack=self._check_blackjack(hand))
+            
 
                 
     def _check_blackjack(self, hand: Hand) -> bool:
